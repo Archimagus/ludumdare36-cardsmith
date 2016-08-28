@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Linq;
+using UnityEngine;
 
 public class Player : MonoBehaviour
 {
@@ -16,7 +17,7 @@ public class Player : MonoBehaviour
 
 	private static int _idGen = 0;
 	public int ID { get; private set; }
-	public int Money { get; set; }
+	public int Coins { get; set; }
 	public int Fuel { get; set; }
 	public int Metal { get; set; }
 	public int VictoryPoints { get; set; }
@@ -66,9 +67,11 @@ public class Player : MonoBehaviour
 	}
 	public void PlayAllCards()
 	{
-		while (CardsInHand.Count > 0)
+		var cards = CardsInHand.Take(CardsInHand.Count).ToArray();
+		foreach (var c in cards)
 		{
-			CardsInHand[0].PlayCard(this);
+			if (!c.BlockAutoPlay)
+				c.PlayCard(this);
 		}
 	}
 	// Called by the Card, don't call.
@@ -90,17 +93,19 @@ public class Player : MonoBehaviour
 	}
 	public void EndTurn()
 	{
-		Money = 0;
+		Coins = 0;
 		Metal = 0;
 		Fuel = 0;
 
 
-		CardsInDiscard.AddRange(CardsInHand);
-		foreach (var c in CardsInHand) { c.DiscardCard(this); }
-		CardsInDiscard.AddRange(CardsInPlay);
-		foreach (var c in CardsInPlay) { c.DiscardCard(this); }
-		CardsInHand.Clear();
-		CardsInPlay.Clear();
+		while (CardsInHand.Count > 0) { CardsInHand[0].DiscardCard(this); }
+		while (CardsInPlay.Count > 0) { CardsInPlay[0].DiscardCard(this); }
+	}
+	public void Discard(Card card)
+	{
+		CardsInDiscard.Add(card);
+		CardsInHand.Remove(card);
+		CardsInPlay.Remove(card);
 	}
 
 	public void DrawCards(int cards = 1)
@@ -137,36 +142,39 @@ public class Player : MonoBehaviour
 	{
 		var cp = GameManager.Instance.CardPrefab;
 
-		var c = Instantiate(cp);
-		c.Location = CardLocations.PlayerDeck;
-		c.MoneyCost = 1;
-		c.Title = "Charcoal";
-		c.name = c.Title;
-		c.Description = "+1 Fuel";
-		c.Flavor = "Not as good as coal, but it'll get you started.";
-		c.OnPlayed += p => p.Fuel++;
-		CardsInDeck.Add(c);
-		CardsInDeck.Add(c.Clone());
 
-		c = Instantiate(cp);
+		var c = Instantiate(cp);
 		c.Location = CardLocations.PlayerDeck;
 		c.MoneyCost = 1;
 		c.Title = "Metal Scraps";
 		c.name = c.Title;
 		c.Description = "+1 Metal";
 		c.Flavor = "Just some hunks of metal you found laying around.";
-		c.OnPlayed += p => p.Metal++;
+		c.OnPlayed += (s, p) => p.Metal++;
 		CardsInDeck.Add(c);
 		CardsInDeck.Add(c.Clone());
+		CardsInDeck.Add(c.Clone());
+		CardsInDeck.Add(c.Clone());
+
+		//c = Instantiate(cp);
+		//c.Location = CardLocations.PlayerDeck;
+		//c.MoneyCost = 1;
+		//c.Title = "Charcoal";
+		//c.name = c.Title;
+		//c.Description = "+1 Fuel";
+		//c.Flavor = "Not as good as coal, but it'll get you started.";
+		//c.OnPlayed += p => p.Fuel++;
+		//CardsInDeck.Add(c);
+		//CardsInDeck.Add(c.Clone());
 
 		c = Instantiate(cp);
 		c.Location = CardLocations.PlayerDeck;
 		c.MoneyCost = 1;
 		c.Title = "Copper Coin";
 		c.name = c.Title;
-		c.Description = "+1 Money";
+		c.Description = "+1 Coins";
 		c.Flavor = "A little jangle in your pocket.";
-		c.OnPlayed += p => p.Money++;
+		c.OnPlayed += (s, p) => p.Coins++;
 		CardsInDeck.Add(c);
 		CardsInDeck.Add(c.Clone());
 		CardsInDeck.Add(c.Clone());
@@ -174,7 +182,7 @@ public class Player : MonoBehaviour
 		CardsInDeck.Add(c.Clone());
 		CardsInDeck.Add(c.Clone());
 
-
 		CardsInDeck.Shuffle();
 	}
+
 }

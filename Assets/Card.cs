@@ -60,12 +60,14 @@ public class Card : MonoBehaviour, ISelectable, IPointerClickHandler
 	public string Title;
 	public string Description;
 	public string Flavor;
-	public Action<Player> OnBought;
-	public Action<Player> OnPlayed;
-	public Action<Player> OnDrawn;
-	public Action<Player> OnActivated;
-	public Action<Player> OnDiscarded;
-	public Action<Player> OnRemovedFromPlay;
+	public bool Consumable;
+	public bool BlockAutoPlay;
+	public Action<Card, Player> OnBought;
+	public Action<Card, Player> OnPlayed;
+	public Action<Card, Player> OnDrawn;
+	public Action<Card, Player> OnActivated;
+	public Action<Card, Player> OnDiscarded;
+	public Action<Card, Player> OnRemovedFromPlay;
 	private bool _selected;
 
 	void Start()
@@ -101,6 +103,8 @@ public class Card : MonoBehaviour, ISelectable, IPointerClickHandler
 
 			MetalCostText.transform.parent.gameObject.SetActive(MetalCost > 0);
 			MetalCostText.text = MetalCost.ToString();
+
+
 		}
 		else
 		{
@@ -113,7 +117,12 @@ public class Card : MonoBehaviour, ISelectable, IPointerClickHandler
 
 		if (!GameManager.Instance.ScrapPanel.isActiveAndEnabled)
 		{
-			Marked = (Location == CardLocations.PlayArea && OnActivated != null);
+			if (Location == CardLocations.PlayArea)
+				Marked = (OnActivated != null && MetaData == string.Empty);
+			else if (Location == CardLocations.BuyRow)
+				Marked = CanAffordCard(GameManager.Instance.CurrentPlayer);
+			else
+				Marked = false;
 		}
 
 
@@ -131,6 +140,9 @@ public class Card : MonoBehaviour, ISelectable, IPointerClickHandler
 	}
 	private void ProcessDoubleClick()
 	{
+		// Don't allow using cards while the scrap panel is open.
+		if (GameManager.Instance.ScrapPanel.isActiveAndEnabled)
+			return;
 		var p = GameManager.Instance.CurrentPlayer;
 		Selected = false;
 		switch (Location)
@@ -159,45 +171,50 @@ public class Card : MonoBehaviour, ISelectable, IPointerClickHandler
 
 	private void TryBuyCard(Player p)
 	{
-		if (p.Money >= MoneyCost && p.Fuel >= FuelCost && p.Metal >= MetalCost)
+		if (CanAffordCard(p))
 		{
-			p.Money -= MoneyCost;
+			p.Coins -= MoneyCost;
 			p.Fuel -= FuelCost;
 			p.Metal -= MetalCost;
 			Location = CardLocations.PlayerDiscard;
 			p.BoughtCard(this);
 			if (OnBought != null)
-				OnBought(p);
+				OnBought(this, p);
 		}
+	}
+	private bool CanAffordCard(Player p)
+	{
+		return (p.Coins >= MoneyCost && p.Fuel >= FuelCost && p.Metal >= MetalCost);
 	}
 	public void Drawn(Player p)
 	{
 		Location = CardLocations.Hand;
 		if (OnDrawn != null)
-			OnDrawn(p);
+			OnDrawn(this, p);
 	}
 	public void PlayCard(Player p)
 	{
 		Location = CardLocations.PlayArea;
 		p.PlayCard(this);
 		if (OnPlayed != null)
-			OnPlayed(p);
+			OnPlayed(this, p);
 	}
 	public void ActivateCard(Player p)
 	{
 		if (OnActivated != null)
-			OnActivated(p);
+			OnActivated(this, p);
 	}
 	public void DiscardCard(Player p)
 	{
 		Location = CardLocations.PlayerDiscard;
+		p.Discard(this);
 		if (OnDiscarded != null)
-			OnDiscarded(p);
+			OnDiscarded(this, p);
 	}
 	public void RemoveFromPlay(Player p)
 	{
 		Location = CardLocations.OutOfPlay;
 		if (OnRemovedFromPlay != null)
-			OnRemovedFromPlay(p);
+			OnRemovedFromPlay(this, p);
 	}
 }

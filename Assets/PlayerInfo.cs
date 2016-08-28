@@ -19,7 +19,7 @@ public class PlayerInfo : MonoBehaviour
 	// Update is called once per frame
 	void Update()
 	{
-		_moneyText.text = _targetPlayer.Money.ToString();
+		_moneyText.text = _targetPlayer.Coins.ToString();
 		_fuelText.text = _targetPlayer.Fuel.ToString();
 		_metalText.text = _targetPlayer.Metal.ToString();
 		_victoryPointsText.text = _targetPlayer.VictoryPoints.ToString();

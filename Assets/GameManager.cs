@@ -5,9 +5,11 @@ using UnityEngine;
 public class GameManager : MonoBehaviour
 {
 	public int HandSize = 5;
+	public int VictoryPointGoal = 21;
 	public Card CardPrefab;
 	public Transform OutOfPlayArea;
 	public ScrapPanel ScrapPanel;
+	public BuyArea BuyArea;
 
 	public static GameManager Instance { get; private set; }
 	public List<Player> Players { get; private set; }
@@ -39,7 +41,21 @@ public class GameManager : MonoBehaviour
 	{
 		_gameStarted = true;
 		CurrentPlayer.EndTurn();
+
+		if (CheckWinCondition())
+		{
+			return;
+		}
+
 		Turn = Mathf.Abs(Turn - 1);
+		if (Turn == 0)
+			BuyArea.Discard();
 		CurrentPlayer.StartTurn();
+
+	}
+
+	private bool CheckWinCondition()
+	{
+		return CurrentPlayer.VictoryPoints > VictoryPointGoal;
 	}
 }

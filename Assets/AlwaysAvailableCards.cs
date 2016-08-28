@@ -9,26 +9,29 @@ public class AlwaysAvailableCards : MonoBehaviour
 		{
 			var c = Instantiate(GameManager.Instance.CardPrefab);
 			c.Location = CardLocations.BuyRow;
-			c.FuelCost = 1;
-			c.MetalCost = 1;
+			//c.FuelCost = 1;
+			//c.MoneyCost = 1;
+			c.MetalCost = 2;
 			c.Title = "Nails";
 			c.name = c.Title;
-			c.Description = "+2 Money\nConsumable";
+			c.Description = "+2 Coins\nConsumed On Use";
+			c.Consumable = true;
+			c.BlockAutoPlay = true;
 			c.Flavor = "Nails, everyone needs them so they are a good source of money.";
-			c.OnPlayed += p =>
+			c.OnPlayed += (s, p) =>
 			{
-				c.MetaData = "Played";
-				p.Money += 2;
+				s.MetaData = "Played";
+				p.Coins += 2;
 			};
 
-			c.OnDiscarded += p =>
+			c.OnDiscarded += (s, p) =>
 			{
-				if (c.MetaData == "Played")
+				if (s.MetaData == "Played")
 				{
 					p.CardsInDiscard.Remove(c);
-					c.Location = CardLocations.BuyRow;
-					c.transform.SetParent(transform);
-					c.MetaData = string.Empty;
+					s.Location = CardLocations.BuyRow;
+					s.transform.SetParent(transform);
+					s.MetaData = string.Empty;
 				}
 			};
 			c.transform.SetParent(transform);

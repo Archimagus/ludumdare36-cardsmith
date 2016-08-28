@@ -51,8 +51,11 @@ public class CardList : IEnumerable<Card>
 	}
 	public void Remove(Card card)
 	{
-		_cards.Remove(card);
-		OnChanged();
+		if (_cards.Contains(card))
+		{
+			_cards.Remove(card);
+			OnChanged();
+		}
 	}
 	public void Clear()
 	{
