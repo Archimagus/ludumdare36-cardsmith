@@ -16,7 +16,11 @@ public enum CardLocations
 public class Card : MonoBehaviour, ISelectable, IPointerClickHandler
 {
 	[SerializeField]
-	private Text CostText;
+	private Text MoneyCostText;
+	[SerializeField]
+	private Text FuelCostText;
+	[SerializeField]
+	private Text MetalCostText;
 	[SerializeField]
 	private Text TitleText;
 	[SerializeField]
@@ -33,7 +37,7 @@ public class Card : MonoBehaviour, ISelectable, IPointerClickHandler
 		get { return _selected; }
 		set
 		{
-			if (value)
+			if (value && !GameManager.Instance.AllowMultiSelect)
 			{
 				foreach (var card in AllCards)
 				{
@@ -44,9 +48,15 @@ public class Card : MonoBehaviour, ISelectable, IPointerClickHandler
 		}
 	}
 
+	public bool Marked { get; set; }
+
+	public string MetaData { get; set; }
+
 	public CardLocations Location;
 
-	public int Cost;
+	public int MoneyCost;
+	public int MetalCost;
+	public int FuelCost;
 	public string Title;
 	public string Description;
 	public string Flavor;
@@ -65,7 +75,7 @@ public class Card : MonoBehaviour, ISelectable, IPointerClickHandler
 	public Card Clone()
 	{
 		var c = Instantiate(this);
-		c.Cost = Cost;
+		c.MoneyCost = MoneyCost;
 		c.Title = Title;
 		c.name = c.Title;
 		c.Description = Description;
@@ -83,13 +93,29 @@ public class Card : MonoBehaviour, ISelectable, IPointerClickHandler
 	{
 		if (Location == CardLocations.BuyRow)
 		{
-			CostText.transform.parent.gameObject.SetActive(true);
-			CostText.text = Cost.ToString();
+			MoneyCostText.transform.parent.gameObject.SetActive(MoneyCost > 0);
+			MoneyCostText.text = MoneyCost.ToString();
+
+			FuelCostText.transform.parent.gameObject.SetActive(FuelCost > 0);
+			FuelCostText.text = FuelCost.ToString();
+
+			MetalCostText.transform.parent.gameObject.SetActive(MetalCost > 0);
+			MetalCostText.text = MetalCost.ToString();
 		}
 		else
-			CostText.transform.parent.gameObject.SetActive(false);
+		{
+			MoneyCostText.transform.parent.gameObject.SetActive(false);
+			FuelCostText.transform.parent.gameObject.SetActive(false);
+			MetalCostText.transform.parent.gameObject.SetActive(false);
+		}
 
 		CardBack.SetActive(Location <= CardLocations.PlayerDeck);
+
+		if (!GameManager.Instance.ScrapPanel.isActiveAndEnabled)
+		{
+			Marked = (Location == CardLocations.PlayArea && OnActivated != null);
+		}
+
 
 		TitleText.text = Title;
 		DescriptionText.text = Description;
@@ -113,6 +139,8 @@ public class Card : MonoBehaviour, ISelectable, IPointerClickHandler
 				break;
 			case CardLocations.PlayerDeck:
 				break;
+			case CardLocations.PlayerDiscard:
+				break;
 			case CardLocations.BuyRow:
 				TryBuyCard(p);
 				break;
@@ -122,6 +150,8 @@ public class Card : MonoBehaviour, ISelectable, IPointerClickHandler
 			case CardLocations.PlayArea:
 				ActivateCard(p);
 				break;
+			case CardLocations.OutOfPlay:
+				break;
 			default:
 				throw new ArgumentOutOfRangeException();
 		}
@@ -129,9 +159,11 @@ public class Card : MonoBehaviour, ISelectable, IPointerClickHandler
 
 	private void TryBuyCard(Player p)
 	{
-		if (p.Money >= Cost)
+		if (p.Money >= MoneyCost && p.Fuel >= FuelCost && p.Metal >= MetalCost)
 		{
-			p.Money -= Cost;
+			p.Money -= MoneyCost;
+			p.Fuel -= FuelCost;
+			p.Metal -= MetalCost;
 			Location = CardLocations.PlayerDiscard;
 			p.BoughtCard(this);
 			if (OnBought != null)

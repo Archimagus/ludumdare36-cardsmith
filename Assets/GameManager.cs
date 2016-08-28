@@ -6,9 +6,13 @@ public class GameManager : MonoBehaviour
 {
 	public int HandSize = 5;
 	public Card CardPrefab;
+	public Transform OutOfPlayArea;
+	public ScrapPanel ScrapPanel;
+
 	public static GameManager Instance { get; private set; }
 	public List<Player> Players { get; private set; }
 	public int Turn { get; set; }
+	public bool AllowMultiSelect { get; set; }
 
 	public Player CurrentPlayer { get { return Players[Turn]; } }
 

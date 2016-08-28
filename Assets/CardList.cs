@@ -29,6 +29,11 @@ public class CardList : IEnumerable<Card>
 		return c;
 	}
 
+	internal bool Contains(Card c)
+	{
+		return _cards.Contains(c);
+	}
+
 	public void Enqueue(Card card)
 	{
 		_cards.Add(card);

@@ -35,7 +35,7 @@ public class BuyArea : MonoBehaviour
 		var cp = GameManager.Instance.CardPrefab;
 
 		var c = Instantiate(cp);
-		c.Cost = 2;
+		c.MoneyCost = 2;
 		c.Title = "Coal";
 		c.name = c.Title;
 		c.Description = "+2 Fuel";
@@ -47,7 +47,7 @@ public class BuyArea : MonoBehaviour
 		Deck.Add(c.Clone());
 
 		c = Instantiate(cp);
-		c.Cost = 2;
+		c.MoneyCost = 2;
 		c.Title = "Iron Lump";
 		c.name = c.Title;
 		c.Description = "+2 Metal";
@@ -60,7 +60,7 @@ public class BuyArea : MonoBehaviour
 
 
 		c = Instantiate(cp);
-		c.Cost = 4;
+		c.MoneyCost = 4;
 		c.Title = "Tool Box";
 		c.name = c.Title;
 		c.Description = "Draw 2 Cards";

@@ -39,44 +39,6 @@ public class Player : MonoBehaviour
 
 		CreateStarterDeck();
 	}
-
-	private void CreateStarterDeck()
-	{
-		var cp = GameManager.Instance.CardPrefab;
-
-		var c = Instantiate(cp);
-		c.Location = CardLocations.PlayerDeck;
-		c.Cost = 1;
-		c.Title = "Charcoal";
-		c.name = c.Title;
-		c.Description = "+1 Fuel";
-		c.Flavor = "Not as good as coal, but it'll get you started.";
-		c.OnPlayed += p => p.Fuel++;
-		CardsInDeck.Add(c);
-		CardsInDeck.Add(c.Clone());
-		CardsInDeck.Add(c.Clone());
-
-		c = Instantiate(cp);
-		c.Location = CardLocations.PlayerDeck;
-		c.Cost = 1;
-		c.Title = "Copper Coin";
-		c.name = c.Title;
-		c.Description = "+1 Money";
-		c.Flavor = "A little jangle in your pocket.";
-		c.OnPlayed += p => p.Money++;
-		CardsInDeck.Add(c);
-		CardsInDeck.Add(c.Clone());
-		CardsInDeck.Add(c.Clone());
-		CardsInDeck.Add(c.Clone());
-		CardsInDeck.Add(c.Clone());
-		CardsInDeck.Add(c.Clone());
-		CardsInDeck.Add(c.Clone());
-		CardsInDeck.Add(c.Clone());
-		CardsInDeck.Add(c.Clone());
-
-		CardsInDeck.Shuffle();
-	}
-
 	void updateDispayArea(Transform area, CardList list)
 	{
 		if (area == null)
@@ -115,6 +77,13 @@ public class Player : MonoBehaviour
 		CardsInHand.Remove(c);
 		CardsInPlay.Add(c);
 	}
+	public void ScrapCards(int count)
+	{
+		var panel = GameManager.Instance.ScrapPanel;
+		panel.Player = this;
+		panel.ScrapCount = count;
+		panel.gameObject.SetActive(true);
+	}
 	public void StartTurn()
 	{
 		DrawCards(GameManager.Instance.HandSize);
@@ -124,8 +93,12 @@ public class Player : MonoBehaviour
 		Money = 0;
 		Metal = 0;
 		Fuel = 0;
+
+
 		CardsInDiscard.AddRange(CardsInHand);
+		foreach (var c in CardsInHand) { c.DiscardCard(this); }
 		CardsInDiscard.AddRange(CardsInPlay);
+		foreach (var c in CardsInPlay) { c.DiscardCard(this); }
 		CardsInHand.Clear();
 		CardsInPlay.Clear();
 	}
@@ -160,4 +133,48 @@ public class Player : MonoBehaviour
 		return CardsInDeck.Dequeue();
 	}
 
+	private void CreateStarterDeck()
+	{
+		var cp = GameManager.Instance.CardPrefab;
+
+		var c = Instantiate(cp);
+		c.Location = CardLocations.PlayerDeck;
+		c.MoneyCost = 1;
+		c.Title = "Charcoal";
+		c.name = c.Title;
+		c.Description = "+1 Fuel";
+		c.Flavor = "Not as good as coal, but it'll get you started.";
+		c.OnPlayed += p => p.Fuel++;
+		CardsInDeck.Add(c);
+		CardsInDeck.Add(c.Clone());
+
+		c = Instantiate(cp);
+		c.Location = CardLocations.PlayerDeck;
+		c.MoneyCost = 1;
+		c.Title = "Metal Scraps";
+		c.name = c.Title;
+		c.Description = "+1 Metal";
+		c.Flavor = "Just some hunks of metal you found laying around.";
+		c.OnPlayed += p => p.Metal++;
+		CardsInDeck.Add(c);
+		CardsInDeck.Add(c.Clone());
+
+		c = Instantiate(cp);
+		c.Location = CardLocations.PlayerDeck;
+		c.MoneyCost = 1;
+		c.Title = "Copper Coin";
+		c.name = c.Title;
+		c.Description = "+1 Money";
+		c.Flavor = "A little jangle in your pocket.";
+		c.OnPlayed += p => p.Money++;
+		CardsInDeck.Add(c);
+		CardsInDeck.Add(c.Clone());
+		CardsInDeck.Add(c.Clone());
+		CardsInDeck.Add(c.Clone());
+		CardsInDeck.Add(c.Clone());
+		CardsInDeck.Add(c.Clone());
+
+
+		CardsInDeck.Shuffle();
+	}
 }
