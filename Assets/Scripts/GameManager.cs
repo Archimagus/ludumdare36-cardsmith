@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -56,6 +57,12 @@ public class GameManager : MonoBehaviour
 
 	private bool CheckWinCondition()
 	{
-		return CurrentPlayer.VictoryPoints > VictoryPointGoal;
+		if (CurrentPlayer.VictoryPoints > VictoryPointGoal)
+		{
+			PlayerPrefs.SetInt("WinningPlayer", Turn);
+			SceneManager.LoadScene("VictoryScene");
+			return true;
+		}
+		return false;
 	}
 }
