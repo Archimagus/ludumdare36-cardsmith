@@ -10,7 +10,8 @@ public enum CardLocations
 	PlayerDiscard,
 	BuyRow,
 	Hand,
-	PlayArea
+	PlayArea,
+	OutOfPlay
 }
 public class Card : MonoBehaviour, ISelectable, IPointerClickHandler
 {
@@ -22,8 +23,26 @@ public class Card : MonoBehaviour, ISelectable, IPointerClickHandler
 	private Text DescriptionText;
 	[SerializeField]
 	private Text FlavorText;
+	[SerializeField]
+	private GameObject CardBack;
 
-	public bool Selected { get; set; }
+	public static CardList AllCards = new CardList();
+
+	public bool Selected
+	{
+		get { return _selected; }
+		set
+		{
+			if (value)
+			{
+				foreach (var card in AllCards)
+				{
+					card.Selected = false;
+				}
+			}
+			_selected = value;
+		}
+	}
 
 	public CardLocations Location;
 
@@ -36,7 +55,13 @@ public class Card : MonoBehaviour, ISelectable, IPointerClickHandler
 	public Action<Player> OnDrawn;
 	public Action<Player> OnActivated;
 	public Action<Player> OnDiscarded;
+	public Action<Player> OnRemovedFromPlay;
+	private bool _selected;
 
+	void Start()
+	{
+		AllCards.Add(this);
+	}
 	public Card Clone()
 	{
 		var c = Instantiate(this);
@@ -50,6 +75,7 @@ public class Card : MonoBehaviour, ISelectable, IPointerClickHandler
 		c.OnDrawn = OnDrawn;
 		c.OnActivated = OnActivated;
 		c.OnDiscarded = OnDiscarded;
+		c.OnRemovedFromPlay = OnRemovedFromPlay;
 		return c;
 	}
 
@@ -62,6 +88,8 @@ public class Card : MonoBehaviour, ISelectable, IPointerClickHandler
 		}
 		else
 			CostText.transform.parent.gameObject.SetActive(false);
+
+		CardBack.SetActive(Location <= CardLocations.PlayerDeck);
 
 		TitleText.text = Title;
 		DescriptionText.text = Description;
@@ -104,7 +132,7 @@ public class Card : MonoBehaviour, ISelectable, IPointerClickHandler
 		if (p.Money >= Cost)
 		{
 			p.Money -= Cost;
-			Location = CardLocations.PlayerDeck;
+			Location = CardLocations.PlayerDiscard;
 			p.BoughtCard(this);
 			if (OnBought != null)
 				OnBought(p);
@@ -116,22 +144,28 @@ public class Card : MonoBehaviour, ISelectable, IPointerClickHandler
 		if (OnDrawn != null)
 			OnDrawn(p);
 	}
-	private void PlayCard(Player p)
+	public void PlayCard(Player p)
 	{
 		Location = CardLocations.PlayArea;
 		p.PlayCard(this);
 		if (OnPlayed != null)
 			OnPlayed(p);
 	}
-	private void ActivateCard(Player p)
+	public void ActivateCard(Player p)
 	{
 		if (OnActivated != null)
 			OnActivated(p);
 	}
-	private void DiscardCard(Player p)
+	public void DiscardCard(Player p)
 	{
 		Location = CardLocations.PlayerDiscard;
 		if (OnDiscarded != null)
 			OnDiscarded(p);
+	}
+	public void RemoveFromPlay(Player p)
+	{
+		Location = CardLocations.OutOfPlay;
+		if (OnRemovedFromPlay != null)
+			OnRemovedFromPlay(p);
 	}
 }

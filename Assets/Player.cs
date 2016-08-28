@@ -19,6 +19,7 @@ public class Player : MonoBehaviour
 	public int Money { get; set; }
 	public int Fuel { get; set; }
 	public int Metal { get; set; }
+	public int VictoryPoints { get; set; }
 
 	public readonly CardList CardsInHand = new CardList();
 	public readonly CardList CardsInDeck = new CardList();
@@ -84,7 +85,7 @@ public class Player : MonoBehaviour
 		foreach (var card in list)
 		{
 			card.transform.SetParent(area);
-			card.transform.SetAsFirstSibling();
+			//card.transform.SetAsFirstSibling();
 		}
 	}
 
@@ -101,6 +102,14 @@ public class Player : MonoBehaviour
 	{
 		CardsInDiscard.Add(c);
 	}
+	public void PlayAllCards()
+	{
+		while (CardsInHand.Count > 0)
+		{
+			CardsInHand[0].PlayCard(this);
+		}
+	}
+	// Called by the Card, don't call.
 	public void PlayCard(Card c)
 	{
 		CardsInHand.Remove(c);
@@ -108,25 +117,32 @@ public class Player : MonoBehaviour
 	}
 	public void StartTurn()
 	{
-		while (CardsInHand.Count < GameManager.Instance.HandSize)
-		{
-			var c = DrawCard();
-			if (c == null)
-				break;
-			CardsInHand.Add(c);
-			c.Drawn(this);
-		}
+		DrawCards(GameManager.Instance.HandSize);
 	}
 	public void EndTurn()
 	{
 		Money = 0;
+		Metal = 0;
+		Fuel = 0;
 		CardsInDiscard.AddRange(CardsInHand);
 		CardsInDiscard.AddRange(CardsInPlay);
 		CardsInHand.Clear();
 		CardsInPlay.Clear();
 	}
 
-	public Card DrawCard()
+	public void DrawCards(int cards = 1)
+	{
+		for (int i = 0; i < cards; i++)
+		{
+			var c = drawCard();
+			if (c == null)
+				break;
+			CardsInHand.Add(c);
+			c.Drawn(this);
+		}
+	}
+
+	private Card drawCard()
 	{
 		if (CardsInDeck.Count == 0)
 		{

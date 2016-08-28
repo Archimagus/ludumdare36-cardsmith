@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public class BuyArea : MonoBehaviour
+public class SpecialBuyArea : MonoBehaviour
 {
 	public int BuyAreaCount = 5;
 	public Transform DeckArea;
@@ -35,38 +35,40 @@ public class BuyArea : MonoBehaviour
 		var cp = GameManager.Instance.CardPrefab;
 
 		var c = Instantiate(cp);
-		c.Cost = 2;
-		c.Title = "Coal";
+		c.Cost = 10;
+		c.Title = "Excalibur";
 		c.name = c.Title;
-		c.Description = "+2 Fuel";
-		c.Flavor = "Put a little fire under that metal";
-		c.OnPlayed += p => p.Fuel += 2;
+		c.Description = "+7 VP";
+		c.Flavor = "Such a masterfull sword you've crafted.";
+		c.OnBought += p => p.VictoryPoints += 7;
+		c.OnRemovedFromPlay += p => p.VictoryPoints -= 7;
 		Deck.Add(c);
-		Deck.Add(c.Clone());
-		Deck.Add(c.Clone());
 		Deck.Add(c.Clone());
 
 		c = Instantiate(cp);
-		c.Cost = 2;
-		c.Title = "Iron Lump";
+		c.Cost = 10;
+		c.Title = "Apprentice";
 		c.name = c.Title;
-		c.Description = "+2 Metal";
-		c.Flavor = "You need raw materials if you are going to make anything.";
+		c.Description = "+3 VP\nOnPlay: Remove a card in your discard from play.";
+		c.Flavor = "Someone needs to clean up arround here.";
 		c.OnPlayed += p => p.Metal += 2;
+		c.OnBought += p => p.VictoryPoints += 3;
+		c.OnRemovedFromPlay += p => p.VictoryPoints -= 3;
 		Deck.Add(c);
 		Deck.Add(c.Clone());
 		Deck.Add(c.Clone());
-		Deck.Add(c.Clone());
-
 
 		c = Instantiate(cp);
-		c.Cost = 4;
-		c.Title = "Tool Box";
+		c.Cost = 6;
+		c.Title = "Shield of Perseus";
 		c.name = c.Title;
-		c.Description = "Draw 2 Cards";
-		c.Flavor = "Yeah";
-		c.OnPlayed += p => p.DrawCards(2);
+		c.Description = "+3 VP";
+		c.Flavor = "So bright you can see yourself in it.";
+		c.OnBought += p => p.VictoryPoints += 3;
+		c.OnRemovedFromPlay += p => p.VictoryPoints -= 3;
 		Deck.Add(c);
+		Deck.Add(c.Clone());
+		Deck.Add(c.Clone());
 		Deck.Add(c.Clone());
 		Deck.Add(c.Clone());
 		Deck.Add(c.Clone());

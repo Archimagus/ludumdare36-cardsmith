@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 using Random = UnityEngine.Random;
 
 public class CardList : IEnumerable<Card>
@@ -71,21 +70,14 @@ public class CardList : IEnumerable<Card>
 
 		if (_cards.Count < 2)
 			return;
-		var sw = new System.Diagnostics.Stopwatch();
-		sw.Start();
 		var lastCard = _cards[_cards.Count - 1];
 		Card currentCard;
-		int iterations = 0;
 		do
 		{
 			currentCard = _cards[0];
 			_cards.Remove(currentCard);
 			_cards.Insert(Random.Range(0, _cards.Count + 1), currentCard);
-			iterations++;
 		} while (currentCard.name != lastCard.name);
-		sw.Stop();
-		Debug.Log("Shuffle Time " + sw.ElapsedMilliseconds + "ms");
-		Debug.Log("Iterations " + iterations);
 		OnChanged();
 	}
 

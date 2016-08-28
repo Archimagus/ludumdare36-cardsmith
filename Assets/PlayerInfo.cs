@@ -12,6 +12,8 @@ public class PlayerInfo : MonoBehaviour
 	private Text _fuelText;
 	[SerializeField]
 	private Text _metalText;
+	[SerializeField]
+	private Text _victoryPointsText;
 
 
 	// Update is called once per frame
@@ -20,5 +22,6 @@ public class PlayerInfo : MonoBehaviour
 		_moneyText.text = _targetPlayer.Money.ToString();
 		_fuelText.text = _targetPlayer.Fuel.ToString();
 		_metalText.text = _targetPlayer.Metal.ToString();
+		_victoryPointsText.text = _targetPlayer.VictoryPoints.ToString();
 	}
 }
