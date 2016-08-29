@@ -7,6 +7,7 @@ public class BuyArea : MonoBehaviour
 	public Transform DeckDiscardArea;
 	public CardList Deck = new CardList();
 	public CardList DeckDiscard = new CardList();
+	public CardList AvailableCards = new CardList();
 
 	// Use this for initialization
 	void Start()
@@ -38,10 +39,17 @@ public class BuyArea : MonoBehaviour
 		if (transform.childCount < BuyAreaCount && Deck.Count > 0)
 		{
 			var c = Deck.Dequeue();
+			AvailableCards.Add(c);
+			c.OnBought += CardBought;
 			c.Location = CardLocations.BuyRow;
 			c.transform.SetParent(transform);
 			c.transform.SetAsFirstSibling();
 		}
+	}
+	void CardBought(Card c, Player p)
+	{
+		AvailableCards.Remove(c);
+		c.OnBought -= CardBought;
 	}
 
 	public void Discard()

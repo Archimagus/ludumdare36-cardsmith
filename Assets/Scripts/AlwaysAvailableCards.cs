@@ -2,12 +2,14 @@
 
 public class AlwaysAvailableCards : MonoBehaviour
 {
+	public Card AvailableCard;
 	// Update is called once per frame
 	void Update()
 	{
 		if (transform.childCount == 0)
 		{
 			var c = Instantiate(GameManager.Instance.CardPrefab);
+			AvailableCard = c;
 			c.Location = CardLocations.BuyRow;
 			//c.FuelCost = 1;
 			//c.MoneyCost = 1;

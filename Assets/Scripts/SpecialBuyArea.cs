@@ -5,7 +5,7 @@ public class SpecialBuyArea : MonoBehaviour
 	public int BuyAreaCount = 5;
 	public Transform DeckArea;
 	public CardList Deck = new CardList();
-
+	public CardList AvailableCards = new CardList();
 	// Use this for initialization
 	void Start()
 	{
@@ -24,11 +24,18 @@ public class SpecialBuyArea : MonoBehaviour
 		if (transform.childCount < BuyAreaCount && Deck.Count > 0)
 		{
 			var c = Deck.Dequeue();
+			AvailableCards.Add(c);
+			c.OnBought += CardBought;
 			c.Location = CardLocations.BuyRow;
 			c.transform.SetParent(transform);
 		}
 	}
 
+	void CardBought(Card c, Player p)
+	{
+		AvailableCards.Remove(c);
+		c.OnBought -= CardBought;
+	}
 
 	private void CreateDeck()
 	{

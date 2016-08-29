@@ -14,7 +14,10 @@ public class GameManager : MonoBehaviour
 	public Transform OutOfPlayArea;
 	public ScrapPanel ScrapPanel;
 	public BuyArea BuyArea;
+	public SpecialBuyArea SpecialBuyArea;
+	public AlwaysAvailableCards AlwaysAvailableCards;
 	public GameObject QuitGamePanel;
+	public GameObject AITurnPanel;
 
 	public static GameManager Instance { get; private set; }
 	public List<Player> Players { get; private set; }
@@ -42,6 +45,8 @@ public class GameManager : MonoBehaviour
 	{
 		if (Input.GetKeyDown(KeyCode.Escape))
 			QuitGamePanel.gameObject.SetActive(true);
+
+		AITurnPanel.SetActive(CurrentPlayer._isAI);
 	}
 	public void QuitGame()
 	{
@@ -72,7 +77,7 @@ public class GameManager : MonoBehaviour
 	{
 		if (CurrentPlayer.VictoryPoints > VictoryPointGoal)
 		{
-			PlayerPrefs.SetInt("WinningPlayer", Turn);
+			PlayerPrefs.SetString("WinningPlayer", CurrentPlayer._isAI ? "AI" : "Player");
 			SceneManager.LoadScene("VictoryScene");
 			return true;
 		}

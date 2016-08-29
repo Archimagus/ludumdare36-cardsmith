@@ -1,7 +1,8 @@
-﻿using UnityEditor;
+﻿
 using UnityEngine.SceneManagement;
-#if UNITY_EDITOR
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
 #endif
 
 public class TitleScreen : MonoBehaviour

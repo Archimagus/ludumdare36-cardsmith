@@ -169,7 +169,7 @@ public class Card : MonoBehaviour, ISelectable, IPointerClickHandler
 		}
 	}
 
-	private void TryBuyCard(Player p)
+	public void TryBuyCard(Player p)
 	{
 		if (CanAffordCard(p))
 		{

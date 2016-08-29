@@ -1,10 +1,10 @@
-﻿using System.Linq;
+﻿using System.Collections;
+using System.Linq;
 using UnityEngine;
 
 public class Player : MonoBehaviour
 {
-	[SerializeField]
-	private bool _isAI = false;
+	public bool _isAI = false;
 	[SerializeField]
 	private Transform _handArea;
 	[SerializeField]
@@ -52,14 +52,62 @@ public class Player : MonoBehaviour
 		}
 	}
 
+	private bool _aiStarted;
+	private bool _aiDone;
 	// Update is called once per frame
 	void Update()
 	{
 		if (_isAI && GameManager.Instance.CurrentPlayer == this)
 		{
-			// Do AI Turn.
-			GameManager.Instance.SwitchTurns();
+			if (!_aiStarted)
+			{
+				_aiStarted = true;
+				_aiDone = false;
+				StartCoroutine(DoAI());
+			}
+			if (_aiDone)
+			{
+				_aiStarted = false;
+				// Do AI Turn.
+				GameManager.Instance.SwitchTurns();
+			}
 		}
+	}
+	IEnumerator DoAI()
+	{
+		var delay = new WaitForSeconds(0.25f);
+		while (CardsInHand.Any())
+		{
+			CardsInHand[0].PlayCard(this);
+			yield return delay;
+			if (GameManager.Instance.ScrapPanel.isActiveAndEnabled)
+				GameManager.Instance.ScrapPanel.gameObject.SetActive(false);
+		}
+		var marked = GameManager.Instance.SpecialBuyArea.AvailableCards.Where(c => c.Marked).ToArray();
+		while (marked.Any())
+		{
+			var card = marked.OrderByDescending(c => c.MetalCost + c.MoneyCost + c.FuelCost).First();
+			card.TryBuyCard(this);
+			marked = GameManager.Instance.SpecialBuyArea.AvailableCards.Where(c => c.Marked).ToArray();
+			yield return delay;
+		}
+
+		marked = GameManager.Instance.BuyArea.AvailableCards.Where(c => c.Marked).ToArray();
+		while (marked.Any())
+		{
+			var card = marked.OrderByDescending(c => c.MetalCost + c.MoneyCost + c.FuelCost).First();
+			card.TryBuyCard(this);
+			marked = GameManager.Instance.BuyArea.AvailableCards.Where(c => c.Marked).ToArray();
+			yield return delay;
+		}
+
+		while (Metal >= 2 && Coins >= 2)
+		{
+			GameManager.Instance.AlwaysAvailableCards.AvailableCard.TryBuyCard(this);
+		}
+
+		yield return delay;
+		_aiDone = true;
 	}
 	public void BoughtCard(Card c)
 	{
