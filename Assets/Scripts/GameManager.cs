@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 public class GameManager : MonoBehaviour
 {
 	public int HandSize = 5;
@@ -11,6 +14,7 @@ public class GameManager : MonoBehaviour
 	public Transform OutOfPlayArea;
 	public ScrapPanel ScrapPanel;
 	public BuyArea BuyArea;
+	public GameObject QuitGamePanel;
 
 	public static GameManager Instance { get; private set; }
 	public List<Player> Players { get; private set; }
@@ -36,7 +40,16 @@ public class GameManager : MonoBehaviour
 	// Update is called once per frame
 	void Update()
 	{
-
+		if (Input.GetKeyDown(KeyCode.Escape))
+			QuitGamePanel.gameObject.SetActive(true);
+	}
+	public void QuitGame()
+	{
+#if UNITY_EDITOR
+		EditorApplication.isPlaying = false;
+#else
+		Application.Quit();
+#endif
 	}
 	public void SwitchTurns()
 	{
@@ -65,4 +78,5 @@ public class GameManager : MonoBehaviour
 		}
 		return false;
 	}
+
 }
