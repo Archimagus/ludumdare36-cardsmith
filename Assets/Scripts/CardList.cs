@@ -4,18 +4,36 @@ using System.Collections.Generic;
 using System.Linq;
 using Random = UnityEngine.Random;
 
+public enum CardListChangeType
+{
+	Add,
+	Remove,
+	Move,
+}
+
+public class CardListChangedEventArgs : EventArgs
+{
+	public CardListChangeType ChangeType { get; private set; }
+	public Card Card { get; private set; }
+
+	public CardListChangedEventArgs(Card card, CardListChangeType cardListChangeType)
+	{
+		Card = card;
+		ChangeType = cardListChangeType;
+	}
+}
 public class CardList : IEnumerable<Card>
 {
 	readonly List<Card> _cards = new List<Card>();
 
 	public int Count { get { return _cards.Count; } }
 
-	public event EventHandler Changed;
-	private void OnChanged()
+	public event EventHandler<CardListChangedEventArgs> Changed;
+	private void OnChanged(Card card, CardListChangeType changeType)
 	{
 		if (Changed != null)
 		{
-			Changed(this, EventArgs.Empty);
+			Changed(this, new CardListChangedEventArgs(card, changeType));
 		}
 	}
 
@@ -25,7 +43,7 @@ public class CardList : IEnumerable<Card>
 			return null;
 		var c = _cards.First();
 		_cards.RemoveAt(0);
-		OnChanged();
+		OnChanged(c, CardListChangeType.Remove);
 		return c;
 	}
 
@@ -37,30 +55,37 @@ public class CardList : IEnumerable<Card>
 	public void Enqueue(Card card)
 	{
 		_cards.Add(card);
-		OnChanged();
+		OnChanged(card, CardListChangeType.Add);
 	}
 	public void AddRange(IEnumerable<Card> cards)
 	{
 		_cards.AddRange(cards);
-		OnChanged();
+		foreach (var card in cards)
+		{
+			OnChanged(card, CardListChangeType.Add);
+		}
 	}
 	public void Add(Card card)
 	{
 		_cards.Add(card);
-		OnChanged();
+		OnChanged(card, CardListChangeType.Add);
 	}
 	public void Remove(Card card)
 	{
 		if (_cards.Contains(card))
 		{
 			_cards.Remove(card);
-			OnChanged();
+			OnChanged(card, CardListChangeType.Remove);
 		}
 	}
 	public void Clear()
 	{
+		var cards = new List<Card>(_cards);
 		_cards.Clear();
-		OnChanged();
+		foreach (var card in cards)
+		{
+			OnChanged(card, CardListChangeType.Remove);
+		}
 	}
 
 	public Card this[int index]
@@ -68,8 +93,12 @@ public class CardList : IEnumerable<Card>
 		get { return _cards[index]; }
 		set
 		{
-			_cards[index] = value;
-			OnChanged();
+			if (_cards[index] != value)
+			{
+				OnChanged(_cards[index], CardListChangeType.Remove);
+				_cards[index] = value;
+				OnChanged(value, CardListChangeType.Add);
+			}
 		}
 	}
 
@@ -86,7 +115,10 @@ public class CardList : IEnumerable<Card>
 			_cards.Remove(currentCard);
 			_cards.Insert(Random.Range(0, _cards.Count + 1), currentCard);
 		} while (currentCard.name != lastCard.name);
-		OnChanged();
+		foreach (var card in _cards)
+		{
+			OnChanged(card, CardListChangeType.Move);
+		}
 	}
 
 	public IEnumerator<Card> GetEnumerator()

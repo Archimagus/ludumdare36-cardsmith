@@ -33,22 +33,20 @@ public class Player : MonoBehaviour
 		ID = _idGen++;
 		GameManager.Instance.Players.Add(this);
 
-		CardsInHand.Changed += (s, e) => updateDispayArea(_handArea, CardsInHand);
-		CardsInDeck.Changed += (s, e) => updateDispayArea(_deckArea, CardsInDeck);
-		CardsInDiscard.Changed += (s, e) => updateDispayArea(_discardArea, CardsInDiscard);
-		CardsInPlay.Changed += (s, e) => updateDispayArea(_playArea, CardsInPlay);
+		CardsInHand.Changed += (s, e) => updateDispayArea(_handArea, e.Card, e.ChangeType);
+		CardsInDeck.Changed += (s, e) => updateDispayArea(_deckArea, e.Card, e.ChangeType);
+		CardsInDiscard.Changed += (s, e) => updateDispayArea(_discardArea, e.Card, e.ChangeType);
+		CardsInPlay.Changed += (s, e) => updateDispayArea(_playArea, e.Card, e.ChangeType);
 
 		CreateStarterDeck();
 	}
-	void updateDispayArea(Transform area, CardList list)
+	void updateDispayArea(Transform area, Card c, CardListChangeType type)
 	{
 		if (area == null)
 			return;
-		area.DetachChildren();
-		foreach (var card in list)
+		if (type == CardListChangeType.Add || type == CardListChangeType.Move)
 		{
-			card.transform.SetParent(area);
-			//card.transform.SetAsFirstSibling();
+			c.MoveTo(area);
 		}
 	}
 
@@ -81,8 +79,15 @@ public class Player : MonoBehaviour
 			CardsInHand[0].PlayCard(this);
 			yield return delay;
 			if (GameManager.Instance.ScrapPanel.isActiveAndEnabled)
-				GameManager.Instance.ScrapPanel.gameObject.SetActive(false);
+			{
+				yield return delay;
+				GameManager.Instance.ScrapPanel.ScrapCheapest();
+				yield return delay;
+			}
 		}
+		while (CardsInPlay.Any(c => c.Interactable == false))
+			yield return null;
+
 		var marked = GameManager.Instance.SpecialBuyArea.AvailableCards.Where(c => c.Marked).ToArray();
 		while (marked.Any())
 		{
@@ -106,6 +111,13 @@ public class Player : MonoBehaviour
 			GameManager.Instance.AlwaysAvailableCards.AvailableCard.TryBuyCard(this);
 		}
 
+		while (CardsInPlay.Any(c => c.Interactable == false)
+			|| CardsInHand.Any(c => c.Interactable == false)
+			|| CardsInDeck.Any(c => c.Interactable == false)
+			|| CardsInDiscard.Any(c => c.Interactable == false))
+			yield return null;
+
+		yield return delay;
 		yield return delay;
 		_aiDone = true;
 	}

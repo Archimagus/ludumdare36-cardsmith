@@ -27,7 +27,7 @@ public class SpecialBuyArea : MonoBehaviour
 			AvailableCards.Add(c);
 			c.OnBought += CardBought;
 			c.Location = CardLocations.BuyRow;
-			c.transform.SetParent(transform);
+			c.MoveTo(transform);
 		}
 	}
 

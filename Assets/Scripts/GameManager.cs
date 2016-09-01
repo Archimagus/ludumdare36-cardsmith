@@ -11,6 +11,8 @@ public class GameManager : MonoBehaviour
 	public int HandSize = 5;
 	public int VictoryPointGoal = 21;
 	public Card CardPrefab;
+	public GameObject CardPlaceholderPrefab;
+	public Transform Canvas;
 	public Transform OutOfPlayArea;
 	public ScrapPanel ScrapPanel;
 	public BuyArea BuyArea;

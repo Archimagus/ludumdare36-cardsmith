@@ -32,7 +32,7 @@ public class AlwaysAvailableCards : MonoBehaviour
 				{
 					p.CardsInDiscard.Remove(c);
 					s.Location = CardLocations.BuyRow;
-					s.transform.SetParent(transform);
+					s.MoveTo(transform);
 					s.MetaData = string.Empty;
 				}
 			};

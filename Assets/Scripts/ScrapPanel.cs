@@ -80,14 +80,24 @@ public class ScrapPanel : MonoBehaviour
 			c.transform.SetParent(_discardRow);
 		}
 	}
-
+	public void ScrapCheapest()
+	{
+		var card = _allCards.OrderBy(c => c.TotalCost).FirstOrDefault();
+		if (card != null)
+		{
+			_cardsToScrap.Clear();
+			_cardsToScrap.Add(card);
+			Scrap();
+		}
+	}
 	public void Scrap()
 	{
 		foreach (var c in _cardsToScrap)
 		{
 			Player.CardsInHand.Remove(c);
 			Player.CardsInDiscard.Remove(c);
-			c.transform.SetParent(GameManager.Instance.OutOfPlayArea);
+			c.transform.SetParent(GameManager.Instance.Canvas, true);
+			c.MoveTo(GameManager.Instance.OutOfPlayArea);
 			c.RemoveFromPlay(Player);
 		}
 		Close();

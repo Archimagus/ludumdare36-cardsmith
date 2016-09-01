@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -13,6 +15,7 @@ public enum CardLocations
 	PlayArea,
 	OutOfPlay
 }
+
 public class Card : MonoBehaviour, ISelectable, IPointerClickHandler
 {
 	[SerializeField]
@@ -31,7 +34,8 @@ public class Card : MonoBehaviour, ISelectable, IPointerClickHandler
 	private GameObject CardBack;
 
 	public static CardList AllCards = new CardList();
-
+	private RandomizedAudioLoop _audioLoop;
+	private bool _selected;
 	public bool Selected
 	{
 		get { return _selected; }
@@ -51,8 +55,11 @@ public class Card : MonoBehaviour, ISelectable, IPointerClickHandler
 	public bool Marked { get; set; }
 
 	public string MetaData { get; set; }
+	public bool Interactable { get; private set; }
 
 	public CardLocations Location;
+
+	public int TotalCost { get { return MoneyCost + MetalCost + FuelCost; } }
 
 	public int MoneyCost;
 	public int MetalCost;
@@ -68,12 +75,13 @@ public class Card : MonoBehaviour, ISelectable, IPointerClickHandler
 	public Action<Card, Player> OnActivated;
 	public Action<Card, Player> OnDiscarded;
 	public Action<Card, Player> OnRemovedFromPlay;
-	private bool _selected;
 
 	void Start()
 	{
 		AllCards.Add(this);
+		_audioLoop = GetComponent<RandomizedAudioLoop>();
 	}
+
 	public Card Clone()
 	{
 		var c = Instantiate(this);
@@ -103,8 +111,6 @@ public class Card : MonoBehaviour, ISelectable, IPointerClickHandler
 
 			MetalCostText.transform.parent.gameObject.SetActive(MetalCost > 0);
 			MetalCostText.text = MetalCost.ToString();
-
-
 		}
 		else
 		{
@@ -129,15 +135,21 @@ public class Card : MonoBehaviour, ISelectable, IPointerClickHandler
 		TitleText.text = Title;
 		DescriptionText.text = Description;
 		FlavorText.text = Flavor;
+
+		DoMovement();
 	}
+
 	public void OnPointerClick(PointerEventData eventData)
 	{
+		if (!Interactable)
+			return;
 		Selected = true;
 		if (eventData.clickCount == 2)
 		{
 			ProcessDoubleClick();
 		}
 	}
+
 	private void ProcessDoubleClick()
 	{
 		// Don't allow using cards while the scrap panel is open.
@@ -182,16 +194,19 @@ public class Card : MonoBehaviour, ISelectable, IPointerClickHandler
 				OnBought(this, p);
 		}
 	}
+
 	private bool CanAffordCard(Player p)
 	{
 		return (p.Coins >= MoneyCost && p.Fuel >= FuelCost && p.Metal >= MetalCost);
 	}
+
 	public void Drawn(Player p)
 	{
 		Location = CardLocations.Hand;
 		if (OnDrawn != null)
 			OnDrawn(this, p);
 	}
+
 	public void PlayCard(Player p)
 	{
 		Location = CardLocations.PlayArea;
@@ -199,11 +214,13 @@ public class Card : MonoBehaviour, ISelectable, IPointerClickHandler
 		if (OnPlayed != null)
 			OnPlayed(this, p);
 	}
+
 	public void ActivateCard(Player p)
 	{
 		if (OnActivated != null)
 			OnActivated(this, p);
 	}
+
 	public void DiscardCard(Player p)
 	{
 		Location = CardLocations.PlayerDiscard;
@@ -211,10 +228,57 @@ public class Card : MonoBehaviour, ISelectable, IPointerClickHandler
 		if (OnDiscarded != null)
 			OnDiscarded(this, p);
 	}
+
 	public void RemoveFromPlay(Player p)
 	{
 		Location = CardLocations.OutOfPlay;
 		if (OnRemovedFromPlay != null)
 			OnRemovedFromPlay(this, p);
 	}
+
+	private GameObject placeholder;
+	private Queue<GameObject> placeholders = new Queue<GameObject>();
+	public void MoveTo(Transform newParent, int siblingIndex = 0)
+	{
+		if (newParent == null)
+			Debug.LogError("Moving to null", this);
+		var ph = Instantiate(GameManager.Instance.CardPlaceholderPrefab);
+		ph.transform.SetParent(newParent);
+		ph.transform.SetSiblingIndex(siblingIndex);
+		placeholders.Enqueue(ph);
+
+	}
+	void DoMovement()
+	{
+		if (placeholder == null && placeholders.Any())
+		{
+			Interactable = false;
+			placeholder = placeholders.Dequeue();
+			transform.SetParent(GameManager.Instance.Canvas, true);
+			if (_audioLoop != null)
+				_audioLoop.Play();
+		}
+		if (placeholder == null)
+		{
+			Interactable = true;
+		}
+		else
+		{
+			transform.position = Vector3.MoveTowards(transform.position, placeholder.transform.position, 1000f * Time.deltaTime);
+			if (Vector3.Distance(placeholder.transform.position, transform.position) < 1f)
+			{
+				var newParent = placeholder.transform.parent;
+				var newIndex = placeholder.transform.GetSiblingIndex();
+				Destroy(placeholder);
+				placeholder = null;
+				if (placeholders.Count == 0)
+				{
+					transform.SetParent(newParent);
+					transform.SetSiblingIndex(newIndex);
+					Interactable = true;
+				}
+			}
+		}
+	}
+
 }
