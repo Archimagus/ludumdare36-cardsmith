@@ -14,6 +14,7 @@ public class Player : MonoBehaviour
 	[SerializeField]
 	private Transform _playArea;
 
+	private bool _myTurn;
 
 	private static int _idGen = 0;
 	public int ID { get; private set; }
@@ -68,7 +69,7 @@ public class Player : MonoBehaviour
 	// Update is called once per frame
 	void Update()
 	{
-		if (_isAI && GameManager.Instance.CurrentPlayer == this)
+		if (_isAI && _myTurn)
 		{
 			if (!_aiStarted)
 			{
@@ -164,13 +165,15 @@ public class Player : MonoBehaviour
 	public void StartTurn()
 	{
 		DrawCards(GameManager.Instance.HandSize);
+		_myTurn = true;
 	}
 	public void EndTurn()
 	{
+		_myTurn = false;
+
 		Coins = 0;
 		Metal = 0;
 		Fuel = 0;
-
 
 		while (CardsInHand.Count > 0) { CardsInHand[0].DiscardCard(this); }
 		while (CardsInPlay.Count > 0) { CardsInPlay[0].DiscardCard(this); }
