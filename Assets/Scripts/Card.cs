@@ -188,7 +188,6 @@ public class Card : MonoBehaviour, ISelectable, IPointerClickHandler
 			p.Coins -= MoneyCost;
 			p.Fuel -= FuelCost;
 			p.Metal -= MetalCost;
-			Location = CardLocations.PlayerDiscard;
 			p.BoughtCard(this);
 			if (OnBought != null)
 				OnBought(this, p);
@@ -202,14 +201,12 @@ public class Card : MonoBehaviour, ISelectable, IPointerClickHandler
 
 	public void Drawn(Player p)
 	{
-		Location = CardLocations.Hand;
 		if (OnDrawn != null)
 			OnDrawn(this, p);
 	}
 
 	public void PlayCard(Player p)
 	{
-		Location = CardLocations.PlayArea;
 		p.PlayCard(this);
 		if (OnPlayed != null)
 			OnPlayed(this, p);
@@ -223,7 +220,6 @@ public class Card : MonoBehaviour, ISelectable, IPointerClickHandler
 
 	public void DiscardCard(Player p)
 	{
-		Location = CardLocations.PlayerDiscard;
 		p.Discard(this);
 		if (OnDiscarded != null)
 			OnDiscarded(this, p);
@@ -231,47 +227,67 @@ public class Card : MonoBehaviour, ISelectable, IPointerClickHandler
 
 	public void RemoveFromPlay(Player p)
 	{
-		Location = CardLocations.OutOfPlay;
 		if (OnRemovedFromPlay != null)
 			OnRemovedFromPlay(this, p);
 	}
 
-	private GameObject placeholder;
-	private Queue<GameObject> placeholders = new Queue<GameObject>();
-	public void MoveTo(Transform newParent, int siblingIndex = 0)
+	private struct CardDestination
+	{
+		public GameObject _placeholder;
+		public CardLocations _location;
+
+		public CardDestination(GameObject placeholder, CardLocations location)
+		{
+			this._placeholder = placeholder;
+			this._location = location;
+		}
+	}
+
+	private CardLocations _newLocation;
+	private GameObject _placeholder;
+	private Queue<CardDestination> _placeholders = new Queue<CardDestination>();
+	public void MoveTo(Transform newParent, CardLocations newLocation, int childPlacement = 0)
 	{
 		if (newParent == null)
 			Debug.LogError("Moving to null", this);
 		var ph = Instantiate(GameManager.Instance.CardPlaceholderPrefab);
 		ph.transform.SetParent(newParent);
-		ph.transform.SetSiblingIndex(siblingIndex);
-		placeholders.Enqueue(ph);
+
+		if (childPlacement < 0)
+			ph.transform.SetAsFirstSibling();
+		if (childPlacement > 0)
+			ph.transform.SetAsLastSibling();
+
+		_placeholders.Enqueue(new CardDestination(ph, newLocation));
 
 	}
 	void DoMovement()
 	{
-		if (placeholder == null && placeholders.Any())
+		if (_placeholder == null && _placeholders.Any())
 		{
 			Interactable = false;
-			placeholder = placeholders.Dequeue();
+			var ph = _placeholders.Dequeue();
+			_placeholder = ph._placeholder;
+			_newLocation = ph._location;
 			transform.SetParent(GameManager.Instance.Canvas, true);
 			if (_audioLoop != null)
 				_audioLoop.Play();
 		}
-		if (placeholder == null)
+		if (_placeholder == null)
 		{
 			Interactable = true;
 		}
 		else
 		{
-			transform.position = Vector3.MoveTowards(transform.position, placeholder.transform.position, 1000f * Time.deltaTime);
-			if (Vector3.Distance(placeholder.transform.position, transform.position) < 1f)
+			transform.position = Vector3.MoveTowards(transform.position, _placeholder.transform.position, 1000f * Time.deltaTime);
+			if (Vector3.Distance(_placeholder.transform.position, transform.position) < 1f)
 			{
-				var newParent = placeholder.transform.parent;
-				var newIndex = placeholder.transform.GetSiblingIndex();
-				Destroy(placeholder);
-				placeholder = null;
-				if (placeholders.Count == 0)
+				var newParent = _placeholder.transform.parent;
+				var newIndex = _placeholder.transform.GetSiblingIndex();
+				Location = _newLocation;
+				Destroy(_placeholder);
+				_placeholder = null;
+				if (_placeholders.Count == 0)
 				{
 					transform.SetParent(newParent);
 					transform.SetSiblingIndex(newIndex);

@@ -26,27 +26,40 @@ public class Player : MonoBehaviour
 	public readonly CardList CardsInDeck = new CardList();
 	public readonly CardList CardsInDiscard = new CardList();
 	public readonly CardList CardsInPlay = new CardList();
-
 	// Use this for initialization
 	void Start()
 	{
 		ID = _idGen++;
 		GameManager.Instance.Players.Add(this);
 
-		CardsInHand.Changed += (s, e) => updateDispayArea(_handArea, e.Card, e.ChangeType);
-		CardsInDeck.Changed += (s, e) => updateDispayArea(_deckArea, e.Card, e.ChangeType);
-		CardsInDiscard.Changed += (s, e) => updateDispayArea(_discardArea, e.Card, e.ChangeType);
-		CardsInPlay.Changed += (s, e) => updateDispayArea(_playArea, e.Card, e.ChangeType);
+		CardsInHand.Changed += (s, e) => updateDispayArea((CardList)s, e.Card, e.ChangeType);
+		CardsInDeck.Changed += (s, e) => updateDispayArea((CardList)s, e.Card, e.ChangeType);
+		CardsInDiscard.Changed += (s, e) => updateDispayArea((CardList)s, e.Card, e.ChangeType);
+		CardsInPlay.Changed += (s, e) => updateDispayArea((CardList)s, e.Card, e.ChangeType);
+
+		CardsInHand.Location = CardLocations.Hand;
+		CardsInHand.DisplayArea = _handArea;
+		CardsInHand.DisplayAreaOrder = -1;
+
+		CardsInDeck.Location = CardLocations.PlayerDeck;
+		CardsInDeck.DisplayArea = _deckArea;
+		CardsInDeck.DisplayAreaOrder = -1;
+
+		CardsInDiscard.Location = CardLocations.PlayerDiscard;
+		CardsInDiscard.DisplayArea = _discardArea;
+		CardsInDiscard.DisplayAreaOrder = 1;
+
+		CardsInPlay.Location = CardLocations.PlayArea;
+		CardsInPlay.DisplayArea = _playArea;
+		CardsInPlay.DisplayAreaOrder = -1;
 
 		CreateStarterDeck();
 	}
-	void updateDispayArea(Transform area, Card c, CardListChangeType type)
+	void updateDispayArea(CardList list, Card c, CardListChangeType type)
 	{
-		if (area == null)
-			return;
 		if (type == CardListChangeType.Add || type == CardListChangeType.Move)
 		{
-			c.MoveTo(area);
+			c.MoveTo(list.DisplayArea, list.Location, list.DisplayAreaOrder);
 		}
 	}
 
@@ -124,6 +137,7 @@ public class Player : MonoBehaviour
 	public void BoughtCard(Card c)
 	{
 		CardsInDiscard.Add(c);
+		c.MoveTo(_discardArea, CardLocations.PlayerDiscard, 1);
 	}
 	public void PlayAllCards()
 	{
@@ -188,10 +202,6 @@ public class Player : MonoBehaviour
 			{
 				CardsInDiscard.Shuffle();
 				CardsInDeck.AddRange(CardsInDiscard);
-				foreach (var c in CardsInDeck)
-				{
-					c.Location = CardLocations.PlayerDeck;
-				}
 				CardsInDiscard.Clear();
 			}
 		}

@@ -31,8 +31,7 @@ public class AlwaysAvailableCards : MonoBehaviour
 				if (s.MetaData == "Played")
 				{
 					p.CardsInDiscard.Remove(c);
-					s.Location = CardLocations.BuyRow;
-					s.MoveTo(transform);
+					s.MoveTo(transform, CardLocations.BuyRow);
 					s.MetaData = string.Empty;
 				}
 			};

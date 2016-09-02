@@ -26,8 +26,7 @@ public class SpecialBuyArea : MonoBehaviour
 			var c = Deck.Dequeue();
 			AvailableCards.Add(c);
 			c.OnBought += CardBought;
-			c.Location = CardLocations.BuyRow;
-			c.MoveTo(transform);
+			c.MoveTo(transform, CardLocations.BuyRow, -1);
 		}
 	}
 

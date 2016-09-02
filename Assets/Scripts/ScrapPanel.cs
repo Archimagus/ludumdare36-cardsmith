@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -97,14 +98,18 @@ public class ScrapPanel : MonoBehaviour
 			Player.CardsInHand.Remove(c);
 			Player.CardsInDiscard.Remove(c);
 			c.transform.SetParent(GameManager.Instance.Canvas, true);
-			c.MoveTo(GameManager.Instance.OutOfPlayArea);
+			c.MoveTo(GameManager.Instance.OutOfPlayArea, CardLocations.OutOfPlay);
 			c.RemoveFromPlay(Player);
 		}
 		Close();
 	}
-
 	public void Close()
 	{
+		StartCoroutine(close());
+	}
+	private IEnumerator close()
+	{
+		yield return null;
 		_allCards.Clear();
 		_cardsToScrap.Clear();
 		foreach (var c in Player.CardsInHand)
@@ -117,6 +122,7 @@ public class ScrapPanel : MonoBehaviour
 			c.Marked = false;
 			c.transform.SetParent(_initialDiscardTransform);
 		}
+		yield return null;
 		gameObject.SetActive(false);
 	}
 }

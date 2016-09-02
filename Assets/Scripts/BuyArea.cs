@@ -31,8 +31,7 @@ public class BuyArea : MonoBehaviour
 			DeckDiscard.Clear();
 			foreach (var card in Deck)
 			{
-				card.Location = CardLocations.DrawDeck;
-				card.MoveTo(DeckArea);
+				card.MoveTo(DeckArea, CardLocations.DrawDeck, 1);
 			}
 		}
 
@@ -41,8 +40,7 @@ public class BuyArea : MonoBehaviour
 			var c = Deck.Dequeue();
 			AvailableCards.Add(c);
 			c.OnBought += CardBought;
-			c.Location = CardLocations.BuyRow;
-			c.MoveTo(transform);
+			c.MoveTo(transform, CardLocations.BuyRow, -1);
 		}
 	}
 	void CardBought(Card c, Player p)
@@ -56,7 +54,7 @@ public class BuyArea : MonoBehaviour
 		if (transform.childCount > 0)
 		{
 			var t = transform.GetChild(transform.childCount - 1);
-			t.GetComponent<Card>().MoveTo(DeckDiscardArea);
+			t.GetComponent<Card>().MoveTo(DeckDiscardArea, CardLocations.DrawDeck);
 			DeckDiscard.Add(t.GetComponent<Card>());
 		}
 	}

@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 using Random = UnityEngine.Random;
 
 public enum CardListChangeType
@@ -27,6 +28,9 @@ public class CardList : IEnumerable<Card>
 	readonly List<Card> _cards = new List<Card>();
 
 	public int Count { get { return _cards.Count; } }
+	public CardLocations Location { get; set; }
+	public Transform DisplayArea { get; set; }
+	public int DisplayAreaOrder { get; set; }
 
 	public event EventHandler<CardListChangedEventArgs> Changed;
 	private void OnChanged(Card card, CardListChangeType changeType)
